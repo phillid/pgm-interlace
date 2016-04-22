@@ -168,7 +168,6 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-
 	for (i = 1; i < argc; i++)
 	{
 		if ((f[i-1] = fopen(argv[i], "r")) == NULL)
@@ -183,13 +182,14 @@ int main(int argc, char **argv)
 		}
 	}
 
-
+	/* read the first file's header and check that the values are sane */
 	if (parse_header(f[0], magic, &width, &size, &white) != 0)
 		return 1;
 
 	if (check_sanity(width, size, white, clust_total) != 0)
 		return 1;
 
+	/* check that header values all agree */
 	for (i = 1; i < clust_total; i++)
 	{
 		parse_header(f[i], new_magic, &new_width, &new_size, &new_white);
@@ -203,7 +203,6 @@ int main(int argc, char **argv)
 		}
 	}
 
-	/* check that header values all agree */
 	fprintf(stderr, "Full image size will be %ldx%ld, using %d images\n", size, size, clust_total);
 
 	/* Output PGM Header */
@@ -215,7 +214,7 @@ int main(int argc, char **argv)
 		for (x = 0; x < size; x++)
 			putchar(fgetc(f[x%clust_total]));
 
-
+	/* close all input files */
 	for (i = 1; i < argc; i++)
 		fclose(f[i-1]);
 
