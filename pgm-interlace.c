@@ -38,13 +38,13 @@ int main(int argc, char **argv)
 	if (argc == 1)
 	{
 		fprintf(stderr, "%s [image 0] [image[1] ...\n", argv[0]);
-		return EXIT_FAILURE;
+		return 1;
 	}
 
 	if ( (f = malloc(sizeof(FILE*)*(clust_total)) ) == NULL)
 	{
 		perror("malloc");
-		return EXIT_FAILURE;
+		return 1;
 	}
 
 
@@ -53,9 +53,12 @@ int main(int argc, char **argv)
 		if ((f[i-1] = fopen(argv[i], "r")) == NULL)
 		{
 			perror("fopen");
+
+			/* close those files already opened */
+			i--;
 			for ( ; i > 1; i--)
 				fclose(f[i-1]);
-			return EXIT_FAILURE;
+			return 1;
 		}
 	}
 
