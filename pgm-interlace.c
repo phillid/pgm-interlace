@@ -27,13 +27,134 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
+#include <string.h>
+
+/* check header values are sane */
+int check_sanity(long width, long height, long white, unsigned int clust_total)
+{
+	if (width <= 0 || height <= 0)
+	{
+		fprintf(stderr, "image dimensions must be positive\n");
+		return 1;
+	}
+
+	/* FIXME only support single-byte pixels, PGM supports 16-bit according
+	 * to <http://netpbm.sourceforge.net/doc/pgm.html> */
+	if (white > 255)
+	{
+		fprintf(stderr, "Only a maximum gray value < 256 is supported\n");
+		return 1;
+	}
+
+	if (width * clust_total != height)
+	{
+		fprintf(stderr, "%d images of %ldx%ld cannot interlace to a square image %ldx%ld\n",
+			clust_total, width, height, height, height);
+		return 1;
+	}
+	return 0;
+}
+
+void read_whitespace(FILE *fd)
+{
+	char c = '\0';
+	do
+	{
+		c = fgetc(fd);
+	} while (strchr(" \t\n\r", c));
+
+	ungetc(c, fd);
+}
+
+int read_token(FILE *fd, char *token, size_t token_size, char *allowable)
+{
+	char c = '\0';
+	int t = 0;
+
+	while (!feof(fd))
+	{
+		/* -1 to leave room for null terminator*/
+		if (t >= token_size - 1)
+		{
+			fprintf(stderr, "read_token: token too large\n");
+			return 1;
+		}
+
+		c = fgetc(fd);
+
+		if (strchr(allowable, c) == NULL)
+		{
+			ungetc(c, fd);
+			break;
+		}
+		*(token++) = c;
+	}
+
+	*token = '\0';
+
+	return 0;
+}
+
+int read_number(FILE *fd, char *token, size_t token_size)
+{
+	return read_token(fd, token, token_size, "0123456789");
+}
+
+/* parse the file's header and read fields into variables */
+int parse_header(FILE *fd, char *magic, long *width, long *height, int *white)
+{
+	char token[32];
+	int ret = 0;
+	read_token(fd, magic, sizeof(magic), "P5");
+
+	if (strcmp(magic, "P5") != 0)
+	{
+		fprintf(stderr, "magic number does not check out, stopping.\n");
+		return 1;
+	}
+
+	read_whitespace(fd);
+
+	if (read_number(fd, token, sizeof(token)) != 0)
+	{
+		fprintf(stderr, "Error reading width\n");
+		return 1;
+	}
+	*width = atoi(token);
+	read_whitespace(fd);
+
+	if (read_number(fd, token, sizeof(token)))
+	{
+		fprintf(stderr, "Error reading height\n");
+		return 1;
+	}
+	*height = atoi(token); /* size == height */
+	read_whitespace(fd);
+
+	if (read_number(fd, token, sizeof(token)))
+	{
+		fprintf(stderr, "Error reading white value\n");
+		return 1;
+	}
+	*white = atoi(token);
+
+	/* standard dictates one whitespace character */
+	/* FIXME check that it's actually a whitespace char */
+	fgetc(fd);
+	return ret;
+}
 
 int main(int argc, char **argv)
 {
-	unsigned int i, x, y, size, header_size;
+	unsigned int i, x, y;
+	long width, size, new_width, new_size;
+	int white, new_white;
 	unsigned int clust_total = argc-1;
 	char buffer[4096];
 	FILE **f = NULL;
+	char magic[3];
+	char new_magic[3];
 
 	if (argc == 1)
 	{
@@ -62,22 +183,31 @@ int main(int argc, char **argv)
 		}
 	}
 
-	/* Fetch sizes from */
-	/* FIXME doesn't check magic value */
-	/* FIXME extremely hackish, relies on specific whitespace format */
-	fgets(buffer, sizeof(buffer), f[0]);
-	fgets(buffer, sizeof(buffer), f[0]);
-	fgets(buffer, sizeof(buffer), f[0]);
-	size = atoi(buffer);
-	fprintf(stderr, "Full image size will be %dx%d, using %d images\n", size, size, clust_total);
-	fgets(buffer, sizeof(buffer), f[0]);
-	header_size = ftell(f[0]);
 
-	for (i = 1; i < argc; i++)
-		fseek(f[i-1], header_size, SEEK_SET);
+	if (parse_header(f[0], magic, &width, &size, &white) != 0)
+		return 1;
+
+	if (check_sanity(width, size, white, clust_total) != 0)
+		return 1;
+
+	for (i = 1; i < clust_total; i++)
+	{
+		parse_header(f[i], new_magic, &new_width, &new_size, &new_white);
+		if (strcmp(magic, new_magic) != 0
+		    || width != new_width
+		    || size != new_size
+		    || white != new_white)
+		{
+			fprintf(stderr, "'%s' doesn't have identical header to '%s', stop\n", argv[i+1], argv[1]);
+			return 1;
+		}
+	}
+
+	/* check that header values all agree */
+	fprintf(stderr, "Full image size will be %ldx%ld, using %d images\n", size, size, clust_total);
 
 	/* Output PGM Header */
-	printf("P5\n%d\n%d\n255\n", size, size);
+	printf("P5\n%ld\n%ld\n%d\n", size, size, white);
 
 	/* FIXME use a buffer
 	 * FIXME check for EOF */
