@@ -64,6 +64,7 @@ int main(int argc, char **argv)
 
 	/* Fetch sizes from */
 	/* FIXME doesn't check magic value */
+	/* FIXME extremely hackish, relies on specific whitespace format */
 	fgets(buffer, sizeof(buffer), f[0]);
 	fgets(buffer, sizeof(buffer), f[0]);
 	fgets(buffer, sizeof(buffer), f[0]);
