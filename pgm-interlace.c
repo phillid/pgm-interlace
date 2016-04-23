@@ -56,13 +56,18 @@ int check_sanity(long width, long height, long white, unsigned int clust_total)
 	return 0;
 }
 
+int is_pgm_whitespace(char c)
+{
+	return strchr(" \t\n\r", c) != NULL;
+}
+
 void read_whitespace(FILE *fd)
 {
 	char c = '\0';
 	do
 	{
 		c = fgetc(fd);
-	} while (strchr(" \t\n\r", c));
+	} while (is_pgm_whitespace(c));
 
 	ungetc(c, fd);
 }
@@ -70,7 +75,7 @@ void read_whitespace(FILE *fd)
 int read_token(FILE *fd, char *token, size_t token_size, char *allowable)
 {
 	char c = '\0';
-	int t = 0;
+	size_t t = 0;
 
 	while (!feof(fd))
 	{
@@ -88,10 +93,10 @@ int read_token(FILE *fd, char *token, size_t token_size, char *allowable)
 			ungetc(c, fd);
 			break;
 		}
-		*(token++) = c;
+		token[t++] = c;
 	}
 
-	*token = '\0';
+	token[t] = '\0';
 
 	return 0;
 }
@@ -105,7 +110,6 @@ int read_number(FILE *fd, char *token, size_t token_size)
 int parse_header(FILE *fd, char *magic, long *width, long *height, int *white)
 {
 	char token[32];
-	int ret = 0;
 	read_token(fd, magic, sizeof(magic), "P5");
 
 	if (strcmp(magic, "P5") != 0)
@@ -139,19 +143,23 @@ int parse_header(FILE *fd, char *magic, long *width, long *height, int *white)
 	}
 	*white = atoi(token);
 
-	/* standard dictates one whitespace character */
-	/* FIXME check that it's actually a whitespace char */
-	fgetc(fd);
-	return ret;
+	/* standard dictates one whitespace character. This character must be
+	 * whitespace or EOF because of token parsing logic */
+	if (fgetc(fd) == EOF)
+	{
+		fprintf(stderr, "Premature end of header\n");
+		return 1;
+	}
+	return 0;
 }
 
 int main(int argc, char **argv)
 {
-	unsigned int i, x, y;
+	int i;
+	unsigned int x, y;
 	long width, size, new_width, new_size;
 	int white, new_white;
-	unsigned int clust_total = argc-1;
-	char buffer[4096];
+	int clust_total = argc-1;
 	FILE **f = NULL;
 	char magic[3];
 	char new_magic[3];
