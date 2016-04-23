@@ -25,6 +25,13 @@
  * SUCH DAMAGE.
  */
 
+/*
+ * general FIXME:
+ *   be strict about initialisation of vars
+ *   add func names to error messages
+ *   consolidate magic number string to #define or something. hardcoded is evil
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
