@@ -1,3 +1,7 @@
+
+.POSIX:
+include config.mk
+
 all: pgm-interlace
 
 pgm-interlace: pgm-interlace.o
