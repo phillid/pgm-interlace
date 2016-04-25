@@ -27,7 +27,6 @@
 
 /*
  * general FIXME:
- *   be strict about initialisation of vars
  *   add func names to error messages
  *   consolidate magic number string to #define or something. hardcoded is evil
  */
@@ -162,9 +161,13 @@ int parse_header(FILE *fd, char *magic, long *width, long *height, int *white)
 
 int main(int argc, char **argv)
 {
-	int i;
-	unsigned int x, y;
-	long width, size, new_width, new_size;
+	int i = 0;
+	unsigned int x = 0;
+	unsigned int y = 0;
+	long width = 0;
+	long size = 0;
+	long new_width = 0;
+	long new_size = 0;
 	int white, new_white;
 	int clust_total = argc-1;
 	FILE **f = NULL;
