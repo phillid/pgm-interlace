@@ -25,12 +25,6 @@
  * SUCH DAMAGE.
  */
 
-/*
- * general FIXME:
- *   add func names to error messages
- *   consolidate magic number string to #define or something. hardcoded is evil
- */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -87,10 +81,10 @@ void read_whitespace(FILE *fd)
 				while (c != '\n' && c != '\r' && c != EOF)
 					c = fgetc(fd);
 				break;
-
+			case EOF:
+				break;
 			default:
 				ungetc(c, fd);
-			case EOF:
 				break;
 		}
 	} while (isspace(c) || c == '#');
