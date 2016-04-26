@@ -107,7 +107,7 @@ int read_token(FILE *fd, char *token, size_t token_size, char *allowable)
 	return 0;
 }
 
-int read_number(FILE *fd, char *token, size_t token_size)
+int read_positive_int(FILE *fd, char *token, size_t token_size)
 {
 	return read_token(fd, token, token_size, "0123456789");
 }
@@ -126,7 +126,7 @@ int parse_header(FILE *fd, char *magic, long *width, long *height, int *white)
 
 	read_whitespace(fd);
 
-	if (read_number(fd, token, sizeof(token)) != 0)
+	if (read_positive_int(fd, token, sizeof(token)) != 0)
 	{
 		fprintf(stderr, "Error reading width\n");
 		return 1;
@@ -134,7 +134,7 @@ int parse_header(FILE *fd, char *magic, long *width, long *height, int *white)
 	*width = atol(token);
 	read_whitespace(fd);
 
-	if (read_number(fd, token, sizeof(token)))
+	if (read_positive_int(fd, token, sizeof(token)))
 	{
 		fprintf(stderr, "Error reading height\n");
 		return 1;
@@ -142,7 +142,7 @@ int parse_header(FILE *fd, char *magic, long *width, long *height, int *white)
 	*height = atol(token); /* size == height */
 	read_whitespace(fd);
 
-	if (read_number(fd, token, sizeof(token)))
+	if (read_positive_int(fd, token, sizeof(token)))
 	{
 		fprintf(stderr, "Error reading white value\n");
 		return 1;
