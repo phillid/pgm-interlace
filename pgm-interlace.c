@@ -71,18 +71,13 @@ int check_sanity(long width, long height, long white, unsigned int clust_total)
 	return 0;
 }
 
-int is_pgm_whitespace(char c)
-{
-	return strchr(" \t\n\r", c) != NULL;
-}
-
 void read_whitespace(FILE *fd)
 {
 	char c = '\0';
 	do
 	{
 		c = fgetc(fd);
-	} while (is_pgm_whitespace(c));
+	} while (isspace(c));
 
 	ungetc(c, fd);
 }
