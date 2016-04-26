@@ -77,9 +77,23 @@ void read_whitespace(FILE *fd)
 	do
 	{
 		c = fgetc(fd);
-	} while (isspace(c));
+		if (isspace(c))
+			continue;
 
-	ungetc(c, fd);
+		switch (c)
+		{
+			case '#':
+				/* suck up the current line of the file */
+				while (c != '\n' && c != '\r' && c != EOF)
+					c = fgetc(fd);
+				break;
+
+			default:
+				ungetc(c, fd);
+			case EOF:
+				break;
+		}
+	} while (isspace(c) || c == '#');
 }
 
 int read_token(FILE *fd, char *token, size_t token_size, const char *allowable)
