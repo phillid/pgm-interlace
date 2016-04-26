@@ -30,10 +30,15 @@
 #include <ctype.h>
 #include <string.h>
 
+/* binary PGM magic characters are 'P5' followed by whitespace (that is, with
+ * no null terminator) */
 const char *pgm_magic = "P5";
 const size_t pgm_magic_len = sizeof(pgm_magic) - sizeof('\0');
 
-/* check header values are sane */
+/*
+ * check header values are within sane limits and that they agree with the PGM
+ * spec at: http://netpbm.sourceforge.net/doc/pgm.html
+ */
 int check_sanity(long width, long height, long white, unsigned int clust_total)
 {
 	if (width <= 0 || height <= 0)
@@ -65,7 +70,12 @@ int check_sanity(long width, long height, long white, unsigned int clust_total)
 	return 0;
 }
 
-void read_whitespace(FILE *fd)
+
+/*
+ * consumes the file which are whitespace, starting at the current offset.
+ * treats comments as whitespace
+ */
+void eat_whitespace(FILE *fd)
 {
 	char c = '\0';
 	do
@@ -90,6 +100,11 @@ void read_whitespace(FILE *fd)
 	} while (isspace(c) || c == '#');
 }
 
+
+/*
+ * read token from fd into token, limiting stored size to token_size, including
+ * the null terminator. Limits token's constituent bytes to those in allowable.
+ */
 int read_token(FILE *fd, char *token, size_t token_size, const char *allowable)
 {
 	char c = '\0';
@@ -119,12 +134,19 @@ int read_token(FILE *fd, char *token, size_t token_size, const char *allowable)
 	return 0;
 }
 
-int read_positive_int(FILE *fd, char *token, size_t token_size)
+
+/*
+ * wrapper around read_token which reads a non-negative integer token
+ */
+int read_non_negative_int(FILE *fd, char *token, size_t token_size)
 {
 	return read_token(fd, token, token_size, "0123456789");
 }
 
-/* parse the file's header and read fields into variables */
+
+/*
+ * parse the file's header and read fields into variables
+ */
 int parse_header(FILE *fd, char *magic, long *width, long *height, int *white)
 {
 	char token[32];
@@ -136,25 +158,25 @@ int parse_header(FILE *fd, char *magic, long *width, long *height, int *white)
 		return 1;
 	}
 
-	read_whitespace(fd);
+	eat_whitespace(fd);
 
-	if (read_positive_int(fd, token, sizeof(token)) != 0)
+	if (read_non_negative_int(fd, token, sizeof(token)) != 0)
 	{
 		fprintf(stderr, "Error reading width\n");
 		return 1;
 	}
 	*width = atol(token);
-	read_whitespace(fd);
+	eat_whitespace(fd);
 
-	if (read_positive_int(fd, token, sizeof(token)))
+	if (read_non_negative_int(fd, token, sizeof(token)))
 	{
 		fprintf(stderr, "Error reading height\n");
 		return 1;
 	}
 	*height = atol(token); /* size == height */
-	read_whitespace(fd);
+	eat_whitespace(fd);
 
-	if (read_positive_int(fd, token, sizeof(token)))
+	if (read_non_negative_int(fd, token, sizeof(token)))
 	{
 		fprintf(stderr, "Error reading white value\n");
 		return 1;
@@ -170,6 +192,7 @@ int parse_header(FILE *fd, char *magic, long *width, long *height, int *white)
 	}
 	return 0;
 }
+
 
 int main(int argc, char **argv)
 {
