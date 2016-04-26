@@ -45,6 +45,12 @@ int check_sanity(long width, long height, long white, unsigned int clust_total)
 		return 1;
 	}
 
+	if (white <= 0)
+	{
+		fprintf(stderr, "white value must be positive\n");
+		return 1;
+	}
+
 	/* FIXME only support single-byte pixels, PGM supports 16-bit according
 	 * to <http://netpbm.sourceforge.net/doc/pgm.html> */
 	if (white > 255)
