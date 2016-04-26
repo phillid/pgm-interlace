@@ -131,7 +131,7 @@ int parse_header(FILE *fd, char *magic, long *width, long *height, int *white)
 		fprintf(stderr, "Error reading width\n");
 		return 1;
 	}
-	*width = atoi(token);
+	*width = atol(token);
 	read_whitespace(fd);
 
 	if (read_number(fd, token, sizeof(token)))
@@ -139,7 +139,7 @@ int parse_header(FILE *fd, char *magic, long *width, long *height, int *white)
 		fprintf(stderr, "Error reading height\n");
 		return 1;
 	}
-	*height = atoi(token); /* size == height */
+	*height = atol(token); /* size == height */
 	read_whitespace(fd);
 
 	if (read_number(fd, token, sizeof(token)))
@@ -147,7 +147,7 @@ int parse_header(FILE *fd, char *magic, long *width, long *height, int *white)
 		fprintf(stderr, "Error reading white value\n");
 		return 1;
 	}
-	*white = atoi(token);
+	*white = atol(token);
 
 	/* standard dictates one whitespace character. This character must be
 	 * whitespace or EOF because of token parsing logic */
