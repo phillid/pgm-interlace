@@ -43,13 +43,13 @@ int check_sanity(long width, long height, long white, unsigned int clust_total)
 {
 	if (width <= 0 || height <= 0)
 	{
-		fprintf(stderr, "image dimensions must be positive\n");
+		fprintf(stderr, "check_sanity: image dimensions must be positive\n");
 		return 1;
 	}
 
 	if (white <= 0)
 	{
-		fprintf(stderr, "white value must be positive\n");
+		fprintf(stderr, "check_sanity: white value must be positive\n");
 		return 1;
 	}
 
@@ -57,13 +57,13 @@ int check_sanity(long width, long height, long white, unsigned int clust_total)
 	 * to <http://netpbm.sourceforge.net/doc/pgm.html> */
 	if (white > 255)
 	{
-		fprintf(stderr, "Only a maximum gray value < 256 is supported\n");
+		fprintf(stderr, "check_sanity: white value must be less than 256\n");
 		return 1;
 	}
 
 	if (width * clust_total != height)
 	{
-		fprintf(stderr, "%d images of %ldx%ld cannot interlace to a square image %ldx%ld\n",
+		fprintf(stderr, "check_sanity: %d images of %ldx%ld cannot interlace to a square image %ldx%ld\n",
 			clust_total, width, height, height, height);
 		return 1;
 	}
@@ -115,7 +115,7 @@ int read_token(FILE *fd, char *token, size_t token_size, const char *allowable)
 		/* -1 to leave room for null terminator*/
 		if (t >= token_size - 1)
 		{
-			fprintf(stderr, "read_token: token too large\n");
+			fprintf(stderr, "read_token: token too large for buffer\n");
 			return 1;
 		}
 
@@ -154,7 +154,7 @@ int parse_header(FILE *fd, char *magic, long *width, long *height, int *white)
 
 	if (strncmp(magic, pgm_magic, pgm_magic_len) != 0)
 	{
-		fprintf(stderr, "magic number does not check out, stopping.\n");
+		fprintf(stderr, "parse_header: magic number does not check out, stop\n");
 		return 1;
 	}
 
@@ -162,7 +162,7 @@ int parse_header(FILE *fd, char *magic, long *width, long *height, int *white)
 
 	if (read_non_negative_int(fd, token, sizeof(token)) != 0)
 	{
-		fprintf(stderr, "Error reading width\n");
+		fprintf(stderr, "parse_header: cannot read width\n");
 		return 1;
 	}
 	*width = atol(token);
@@ -170,7 +170,7 @@ int parse_header(FILE *fd, char *magic, long *width, long *height, int *white)
 
 	if (read_non_negative_int(fd, token, sizeof(token)))
 	{
-		fprintf(stderr, "Error reading height\n");
+		fprintf(stderr, "parse_header: cannot read height\n");
 		return 1;
 	}
 	*height = atol(token); /* size == height */
@@ -178,7 +178,7 @@ int parse_header(FILE *fd, char *magic, long *width, long *height, int *white)
 
 	if (read_non_negative_int(fd, token, sizeof(token)))
 	{
-		fprintf(stderr, "Error reading white value\n");
+		fprintf(stderr, "parse_header: cannot read white value\n");
 		return 1;
 	}
 	*white = atol(token);
@@ -187,7 +187,7 @@ int parse_header(FILE *fd, char *magic, long *width, long *height, int *white)
 	 * whitespace or EOF because of token parsing logic */
 	if (fgetc(fd) == EOF)
 	{
-		fprintf(stderr, "Premature end of header\n");
+		fprintf(stderr, "parse_header: premature end of header\n");
 		return 1;
 	}
 	return 0;
@@ -225,6 +225,7 @@ int main(int argc, char **argv)
 	{
 		if ((f[i-1] = fopen(argv[i], "r")) == NULL)
 		{
+			fprintf(stderr, "failed to open '%s': ", argv[i]);
 			perror("fopen");
 
 			/* close those files already opened */
@@ -251,7 +252,7 @@ int main(int argc, char **argv)
 		    || size != new_size
 		    || white != new_white)
 		{
-			fprintf(stderr, "'%s' doesn't have identical header to '%s', stop\n", argv[i+1], argv[1]);
+			fprintf(stderr, "Error: '%s' doesn't have identical header to '%s', stop\n", argv[i+1], argv[1]);
 			return 1;
 		}
 	}
