@@ -30,10 +30,7 @@
 #include <ctype.h>
 #include <string.h>
 
-/* binary PGM magic characters are 'P5' followed by whitespace (that is, with
- * no null terminator) */
-const char *pgm_magic = "P5";
-const size_t pgm_magic_len = sizeof(pgm_magic) - sizeof('\0');
+#define PGM_MAGIC "P5"
 
 /*
  * check header values are within sane limits and that they agree with the PGM
@@ -104,6 +101,8 @@ void eat_whitespace(FILE *fd)
 /*
  * read token from fd into token, limiting stored size to token_size, including
  * the null terminator. Limits token's constituent bytes to those in allowable.
+ * In the case allowable is a null pointer, we will treat all non-whitespace
+ * characters as allowable ones.
  */
 int read_token(FILE *fd, char *token, size_t token_size, const char *allowable)
 {
@@ -112,6 +111,17 @@ int read_token(FILE *fd, char *token, size_t token_size, const char *allowable)
 
 	while (!feof(fd))
 	{
+		c = fgetc(fd);
+
+		if (allowable == NULL)
+		{
+			if (isspace(c))
+				break;
+		} else {
+			if (strchr(allowable, c) == NULL)
+				break;
+		}
+
 		/* -1 to leave room for null terminator*/
 		if (t >= token_size - 1)
 		{
@@ -119,15 +129,10 @@ int read_token(FILE *fd, char *token, size_t token_size, const char *allowable)
 			return 1;
 		}
 
-		c = fgetc(fd);
-
-		if (strchr(allowable, c) == NULL)
-		{
-			ungetc(c, fd);
-			break;
-		}
 		token[t++] = c;
 	}
+
+	ungetc(c, fd);
 
 	token[t] = '\0';
 
@@ -147,12 +152,16 @@ int read_non_negative_int(FILE *fd, char *token, size_t token_size)
 /*
  * parse the file's header and read fields into variables
  */
-int parse_header(FILE *fd, char *magic, long *width, long *height, int *white)
+int parse_header(FILE *fd, char *magic, size_t magic_len, long *width, long *height, int *white)
 {
 	char token[32];
-	read_token(fd, magic, sizeof(magic), pgm_magic);
+	if (read_token(fd, magic, magic_len, NULL))
+	{
+		fprintf(stderr, "parse_header: failed to read magic number\n");
+		return 1;
+	}
 
-	if (strncmp(magic, pgm_magic, pgm_magic_len) != 0)
+	if (memcmp(magic, PGM_MAGIC, magic_len) != 0)
 	{
 		fprintf(stderr, "parse_header: magic number does not check out, stop\n");
 		return 1;
@@ -237,7 +246,7 @@ int main(int argc, char **argv)
 	}
 
 	/* read the first file's header and check that the values are sane */
-	if (parse_header(f[0], magic, &width, &size, &white) != 0)
+	if (parse_header(f[0], magic, sizeof(magic), &width, &size, &white) != 0)
 		return 1;
 
 	if (check_sanity(width, size, white, clust_total) != 0)
@@ -246,7 +255,7 @@ int main(int argc, char **argv)
 	/* check that header values all agree */
 	for (i = 1; i < clust_total; i++)
 	{
-		parse_header(f[i], new_magic, &new_width, &new_size, &new_white);
+		parse_header(f[i], new_magic, sizeof(new_magic), &new_width, &new_size, &new_white);
 		if (strcmp(magic, new_magic) != 0
 		    || width != new_width
 		    || size != new_size
@@ -260,7 +269,7 @@ int main(int argc, char **argv)
 	fprintf(stderr, "Full image size will be %ldx%ld, using %d images\n", size, size, clust_total);
 
 	/* Output PGM Header */
-	printf("%s\n%ld\n%ld\n%d\n", pgm_magic, size, size, white);
+	printf("%s\n%ld\n%ld\n%d\n", PGM_MAGIC, size, size, white);
 
 	/* FIXME use a buffer
 	 * FIXME check for EOF */
