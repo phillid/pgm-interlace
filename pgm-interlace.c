@@ -74,7 +74,7 @@ int check_sanity(long width, long height, long white, unsigned int clust_total)
  */
 void eat_whitespace(FILE *fd)
 {
-	char c = '\0';
+	int c = '\0';
 	do
 	{
 		c = fgetc(fd);
@@ -106,7 +106,7 @@ void eat_whitespace(FILE *fd)
  */
 int read_token(FILE *fd, char *token, size_t token_size, const char *allowable)
 {
-	char c = '\0';
+	int c = '\0';
 	size_t t = 0;
 
 	while (!feof(fd))
@@ -203,11 +203,40 @@ int parse_header(FILE *fd, char *magic, size_t magic_len, long *width, long *hei
 }
 
 
+/**/
+int write_pgm(FILE *fout, unsigned long size, unsigned int white, FILE **fin, size_t fin_len)
+{
+	unsigned long x = 0;
+	unsigned long y = 0;
+	int c = '\0';
+	size_t fnum = 0;
+
+
+	/* Output PGM Header */
+	fprintf(fout, "%s\n%ld\n%ld\n%d\n", PGM_MAGIC, size, size, white);
+
+	/* FIXME use a buffer */
+	for (y = 0; y < size; y++)
+	{
+		for (x = 0; x < size; x++)
+		{
+			fnum = x % fin_len;
+			c = fgetc(fin[fnum]);
+			if (c == EOF)
+			{
+				fprintf(stderr, "Unexpected EOF on file %lu at pixel (%lu,%lu); pgm input truncated? Stop.\n", fnum, x, y);
+/*				return 1;*/
+			}
+			fputc(c, fout);
+		}
+	}
+	return 0;
+}
+
+
 int main(int argc, char **argv)
 {
 	int i = 0;
-	unsigned int x = 0;
-	unsigned int y = 0;
 	long width = 0;
 	long size = 0;
 	long new_width = 0;
@@ -268,14 +297,7 @@ int main(int argc, char **argv)
 
 	fprintf(stderr, "Full image size will be %ldx%ld, using %d images\n", size, size, clust_total);
 
-	/* Output PGM Header */
-	printf("%s\n%ld\n%ld\n%d\n", PGM_MAGIC, size, size, white);
-
-	/* FIXME use a buffer
-	 * FIXME check for EOF */
-	for (y = 0; y < size; y++)
-		for (x = 0; x < size; x++)
-			putchar(fgetc(f[x%clust_total]));
+	write_pgm(stdout, size, white, f, clust_total);
 
 	/* close all input files */
 	for (i = 1; i < argc; i++)
