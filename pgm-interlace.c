@@ -225,7 +225,7 @@ int write_pgm(FILE *fout, unsigned long size, unsigned int white, FILE **fin, si
 			if (c == EOF)
 			{
 				fprintf(stderr, "Unexpected EOF on file %lu at pixel (%lu,%lu); pgm input truncated? Stop.\n", fnum, x, y);
-/*				return 1;*/
+				return 1;
 			}
 			fputc(c, fout);
 		}
