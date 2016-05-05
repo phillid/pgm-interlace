@@ -58,7 +58,7 @@ int check_sanity(long width, long height, long white, unsigned int clust_total)
 		return 1;
 	}
 
-	if (width * clust_total != height)
+	if (height * clust_total != width)
 	{
 		fprintf(stderr, "check_sanity: %d images of %ldx%ld cannot interlace to a square image %ldx%ld\n",
 			clust_total, width, height, height, height);
@@ -202,34 +202,43 @@ int parse_header(FILE *fd, char *magic, size_t magic_len, long *width, long *hei
 	return 0;
 }
 
-
 /**/
 int write_pgm(FILE *fout, unsigned long size, unsigned int white, FILE **fin, size_t fin_len)
 {
-	unsigned long x = 0;
+	char *buffer = NULL;
 	unsigned long y = 0;
-	int c = '\0';
 	size_t fnum = 0;
+	size_t n = 0;
 
+	buffer = malloc(size);
+	if (buffer == NULL)
+	{
+		perror("write_pgm: failed to allocate buffer");
+		return 1;
+	}
 
 	/* Output PGM Header */
 	fprintf(fout, "%s\n%ld\n%ld\n%d\n", PGM_MAGIC, size, size, white);
 
-	/* FIXME use a buffer */
 	for (y = 0; y < size; y++)
 	{
-		for (x = 0; x < size; x++)
+		fnum = y % fin_len;
+		n = fread(buffer, 1, size, fin[fnum]);
+		if (n == 0)
 		{
-			fnum = x % fin_len;
-			c = fgetc(fin[fnum]);
-			if (c == EOF)
-			{
-				fprintf(stderr, "Unexpected EOF on file %lu at pixel (%lu,%lu); pgm input truncated? Stop.\n", fnum, x, y);
-				return 1;
-			}
-			fputc(c, fout);
+			fprintf(stderr, "Unexpected EOF on file %lu at row %lu; pgm input truncated? Stop.\n", fnum, y);
+			free(buffer);
+			return 1;
+		}
+		n = fwrite(buffer, n, 1, fout);
+		if (n != 1)
+		{
+			perror("Unable to write to output stream");
+			free(buffer);
+			return 1;
 		}
 	}
+	free(buffer);
 	return 0;
 }
 
@@ -237,9 +246,9 @@ int write_pgm(FILE *fout, unsigned long size, unsigned int white, FILE **fin, si
 int main(int argc, char **argv)
 {
 	int i = 0;
-	long width = 0;
+	long height = 0;
 	long size = 0;
-	long new_width = 0;
+	long new_height = 0;
 	long new_size = 0;
 	int white, new_white;
 	int clust_total = argc-1;
@@ -275,18 +284,18 @@ int main(int argc, char **argv)
 	}
 
 	/* read the first file's header and check that the values are sane */
-	if (parse_header(f[0], magic, sizeof(magic), &width, &size, &white) != 0)
+	if (parse_header(f[0], magic, sizeof(magic), &size, &height, &white) != 0)
 		return 1;
 
-	if (check_sanity(width, size, white, clust_total) != 0)
+	if (check_sanity(size, height, white, clust_total) != 0)
 		return 1;
 
 	/* check that header values all agree */
 	for (i = 1; i < clust_total; i++)
 	{
-		parse_header(f[i], new_magic, sizeof(new_magic), &new_width, &new_size, &new_white);
+		parse_header(f[i], new_magic, sizeof(new_magic), &new_size, &new_height, &new_white);
 		if (strcmp(magic, new_magic) != 0
-		    || width != new_width
+		    || height != new_height
 		    || size != new_size
 		    || white != new_white)
 		{
