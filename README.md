@@ -1,6 +1,10 @@
 # pgm-interlace
-Vertically interlace *n* PGM frames, each one *height/n* pixels in width into
-one square image with a width the same as the height.
+Vertically interlace *n* PGM frames, each one *width/n* pixels in height into
+one square image.
+
+## Syntax
+
+	pgm-interlace [frame 0] [frame 1] [frame 2] ...
 
 The order in which the frames are specified on the command line is critical for
 the reconstruction of the image. pgm-interlace has no way of telling in which
