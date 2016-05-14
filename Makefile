@@ -6,7 +6,10 @@ all: pgm-interlace
 
 pgm-interlace: pgm-interlace.o
 
-.PHONY: all clean clean-object
+test:
+	./test/test.sh
+
+.PHONY: all clean clean-object test
 clean: clean-object
 	rm -f pgm-interlace
 
