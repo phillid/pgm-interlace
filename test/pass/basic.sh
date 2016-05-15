@@ -1,3 +1,3 @@
 #!/bin/sh
 
-${EXECUTABLE} white.pgm black.pgm gray.pgm > basic.pgm.out
+${EXECUTABLE} ../input/{white,black,gray}.pgm > basic.pgm.out
