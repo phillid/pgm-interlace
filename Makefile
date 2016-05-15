@@ -6,7 +6,7 @@ all: pgm-interlace
 
 pgm-interlace: pgm-interlace.o
 
-test:
+test: all
 	./test/test.sh
 
 .PHONY: all clean clean-object test
