@@ -208,6 +208,14 @@ int parse_header(FILE *fd, char *magic, size_t magic_len, long *width, long *hei
 	return 0;
 }
 
+void close_all(FILE **f, size_t f_len)
+{
+	size_t i = 0;
+
+	for (i = 0; i < f_len; i++)
+		fclose(f[i]);
+}
+
 /**/
 int write_pgm(FILE *fout, unsigned long size, unsigned int white, FILE **fin, size_t fin_len)
 {
@@ -306,18 +314,21 @@ int main(int argc, char **argv)
 		    || white != new_white)
 		{
 			fprintf(stderr, "Error: '%s' doesn't have identical header to '%s', stop\n", argv[i+1], argv[1]);
+			close_all(f, clust_total);
 			return 1;
 		}
 	}
 
 	fprintf(stderr, "Full image size will be %ldx%ld, using %d images\n", size, size, clust_total);
 
-	write_pgm(stdout, size, white, f, clust_total);
+	if (write_pgm(stdout, size, white, f, clust_total))
+	{
+		close_all(f, clust_total);
+		return 1;
+	}
 
-	/* close all input files */
-	for (i = 1; i < argc; i++)
-		fclose(f[i-1]);
-
+	close_all(f, clust_total);
 	free(f);
+
 	return 0;
 }
