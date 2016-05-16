@@ -29,8 +29,11 @@ for i in {pass,error,xfail}/*.sh ; do
 	expected="$name.pgm.expected"
 	out="$name.pgm.out"
 	./$(basename $i) 2> $name.stderr.log
-	[ -f $expected ] && diff $expected $out
 	result=$?
+	if [ -f $expected ] ; then
+		diff $expected $out
+		result=$?
+	fi
 	case $test_type in
 		pass)
 			if [ $result -eq 0 ] ; then
