@@ -75,6 +75,7 @@ int check_sanity(long width, long height, long white, unsigned int clust_total)
 void eat_whitespace(FILE *fd)
 {
 	int c = '\0';
+
 	do
 	{
 		c = fgetc(fd);
@@ -161,6 +162,7 @@ int read_non_negative_int(FILE *fd, char *token, size_t token_size)
 int parse_header(FILE *fd, char *magic, size_t magic_len, long *width, long *height, int *white)
 {
 	char token[32];
+
 	if (read_token(fd, magic, magic_len, NULL))
 	{
 		fprintf(stderr, "parse_header: failed to read magic number\n");
@@ -208,6 +210,7 @@ int parse_header(FILE *fd, char *magic, size_t magic_len, long *width, long *hei
 	return 0;
 }
 
+/**/
 void close_all(FILE **f, size_t f_len)
 {
 	size_t i = 0;
@@ -264,7 +267,8 @@ int main(int argc, char **argv)
 	long size = 0;
 	long new_height = 0;
 	long new_size = 0;
-	int white, new_white;
+	int white = 0;
+	int new_white = 0;
 	int clust_total = argc-1;
 	FILE **f = NULL;
 	char magic[3];
