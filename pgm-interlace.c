@@ -136,6 +136,12 @@ int read_token(FILE *fd, char *token, size_t token_size, const char *allowable)
 
 	token[t] = '\0';
 
+	if (strlen(token) == 0)
+	{
+		fprintf(stderr, "read_token: no token available\n");
+		return 1;
+	}
+
 	return 0;
 }
 
