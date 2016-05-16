@@ -1,3 +1,3 @@
 #!/bin/sh
 
-${EXECUTABLE} single-frame.pgm.in > single-frame.pgm.out
+${EXECUTABLE} ../input/single-frame.pgm > single-frame.pgm.out
