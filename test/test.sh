@@ -25,13 +25,15 @@ export EXECUTABLE="$PWD/../pgm-interlace"
 for i in {pass,error,xfail}/*.sh ; do
 	test_type=$(dirname $i)
 	pushd $test_type > /dev/null
-	name=$(basename ${i/.sh/})
+
+	name=$(basename "${i/.sh/}")
 	expected="$name.pgm.expected"
 	out="$name.pgm.out"
-	./$(basename $i) 2> $name.stderr.log
+	log="$name.stderr.log"
+	./$(basename $i) 2> "$log"
 	result=$?
-	if [ -f $expected ] ; then
-		diff $expected $out
+	if [ -f "$expected" ] ; then
+		diff "$expected" "$out"
 		result=$?
 	fi
 	case $test_type in
@@ -62,6 +64,6 @@ for i in {pass,error,xfail}/*.sh ; do
 		;;
 	esac
 
-	rm -f $out $name.stderr.log
+	rm -f "$out" "$log"
 	popd > /dev/null
 done
