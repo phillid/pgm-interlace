@@ -5,6 +5,7 @@ include config.mk
 all: pgm-interlace
 
 pgm-interlace: pgm-interlace.o
+	$(CC) -o $@ $< $(LDFLAGS)
 
 test: all
 	./test/test.sh
