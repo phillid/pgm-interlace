@@ -34,11 +34,18 @@ for i in {pass,error,xfail}/*.sh ; do
 	./$(basename $i) 2> "$log"
 	result=$?
 	if [ -f "$expected" ] ; then
-		diff "$expected" "$out"
-		result=$?
+		if ! diff "$expected" "$out" ; then
+			fail "output file doesn't match expectation"
+			popd > /dev/null
+			continue
+		fi
 	fi
 	if [ -f "$log_expected" ] ; then
-		diff "$log_expected" "$log" || fail stderr doesn\'t match
+		if ! diff "$log_expected" "$log" ; then
+			fail "stderr doesn't match expectation"
+			popd > /dev/null
+			continue
+		fi
 	fi
 	case $test_type in
 		pass)
