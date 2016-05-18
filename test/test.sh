@@ -2,18 +2,18 @@
 
 fail()
 {
-	echo -e '[\e[1;31mFAIL\e[0m] '$i
+	echo -e '[\e[1;31mFAIL\e[0m] '$i $@
 }
 
 
 xfail()
 {
-	echo -e '[\e[1;35mXFAIL\e[0m] '$i
+	echo -e '[\e[1;35mXFAIL\e[0m] '$i $@
 }
 
 pass()
 {
-	echo -e '[\e[0;32mPASS\e[0m] '$i
+	echo -e '[\e[0;32mPASS\e[0m] '$i $@
 }
 
 #########################
@@ -30,11 +30,15 @@ for i in {pass,error,xfail}/*.sh ; do
 	expected="$name.pgm.expected"
 	out="$name.pgm.out"
 	log="$name.stderr.log"
+	log_expected="$log.expected"
 	./$(basename $i) 2> "$log"
 	result=$?
 	if [ -f "$expected" ] ; then
 		diff "$expected" "$out"
 		result=$?
+	fi
+	if [ -f "$log_expected" ] ; then
+		diff "$log_expected" "$log" || fail stderr doesn\'t match
 	fi
 	case $test_type in
 		pass)
@@ -64,6 +68,6 @@ for i in {pass,error,xfail}/*.sh ; do
 		;;
 	esac
 
-	rm -f "$out" "$log"
+	rm -f "$out" # "$log"
 	popd > /dev/null
 done

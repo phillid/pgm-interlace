@@ -1,0 +1,2 @@
+read_token: token too large for buffer
+parse_header: failed to read magic number

@@ -1,0 +1,1 @@
+check_sanity: 2 images of 300x100 cannot interlace to a square image 100x100
