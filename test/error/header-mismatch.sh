@@ -1,3 +1,3 @@
 #!/bin/sh
 
-${EXECUTABLE} ../input/{white,single-frame}.pgm > /dev/null
+${EXECUTABLE} ../input/{white,white,white-whiteval}.pgm > /dev/null
