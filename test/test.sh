@@ -75,6 +75,6 @@ for i in {pass,error,xfail}/*.sh ; do
 		;;
 	esac
 
-	rm -f "$out" # "$log"
+	rm -f "$out" "$log"
 	popd > /dev/null
 done
