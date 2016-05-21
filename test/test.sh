@@ -1,18 +1,25 @@
 #!/bin/sh
 
+fails=0
+passes=0
+xfails=0
+
 fail()
 {
+	fails=$(( $fails + 1 ))
 	echo -e '[\e[1;31mFAIL\e[0m] '$i $@
 }
 
 
 xfail()
 {
+	xfails=$(( $xfails + 1 ))
 	echo -e '[\e[1;35mXFAIL\e[0m] '$i $@
 }
 
 pass()
 {
+	passes=$(( $passes + 1 ))
 	echo -e '[\e[0;32mPASS\e[0m] '$i $@
 }
 
@@ -78,3 +85,13 @@ for i in {pass,error,xfail}/*.sh ; do
 	rm -f "$out" "$log"
 	popd > /dev/null
 done
+
+echo ----------------------------------
+echo Test results
+echo ----------------------------------
+echo "Failures          : $fails"
+echo "Passes            : $passes"
+echo "Expected failures : $xfails"
+echo ----------------------------------
+
+exit $fails
