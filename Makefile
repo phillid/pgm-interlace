@@ -15,4 +15,4 @@ clean: clean-object
 	rm -f pgm-interlace
 
 clean-object:
-	rm -fv *.o
+	rm -f *.o
