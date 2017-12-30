@@ -36,7 +36,7 @@
  * check header values are within sane limits and that they agree with the PGM
  * spec at: http://netpbm.sourceforge.net/doc/pgm.html
  */
-int check_sanity(long width, long height, long white, unsigned int clust_total)
+int check_sanity(long width, long height, long white, long clust_total)
 {
 	if (width <= 0 || height <= 0)
 	{
@@ -60,7 +60,7 @@ int check_sanity(long width, long height, long white, unsigned int clust_total)
 
 	if (height * clust_total != width)
 	{
-		fprintf(stderr, "check_sanity: %d images of %ldx%ld cannot interlace to a square image %ldx%ld\n",
+		fprintf(stderr, "check_sanity: %ld images of %ldx%ld cannot interlace to a square image %ldx%ld\n",
 			clust_total, width, height, height, height);
 		return 1;
 	}
@@ -243,7 +243,7 @@ int write_pgm(FILE *fout, unsigned long size, unsigned int white, FILE **fin, si
 		n = fread(buffer, 1, size, fin[fnum]);
 		if (n == 0)
 		{
-			fprintf(stderr, "Unexpected EOF on file %lu at row %lu; pgm input truncated? Stop.\n", fnum, y);
+			fprintf(stderr, "Unexpected EOF on file %zd at row %lu; pgm input truncated? Stop.\n", fnum, y);
 			free(buffer);
 			return 1;
 		}
