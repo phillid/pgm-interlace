@@ -262,6 +262,7 @@ int write_pgm(FILE *fout, unsigned long size, unsigned int white, FILE **fin, si
 
 int main(int argc, char **argv)
 {
+	int ret = 0;
 	int i = 0;
 	long height = 0;
 	long size = 0;
@@ -297,16 +298,18 @@ int main(int argc, char **argv)
 			i--;
 			for ( ; i > 1; i--)
 				fclose(f[i-1]);
-			return 1;
+
+			ret = 1;
+			goto STOP_FREE_ONLY;
 		}
 	}
 
 	/* read the first file's header and check that the values are sane */
-	if (parse_header(f[0], magic, sizeof(magic), &size, &height, &white) != 0)
-		return 1;
-
-	if (check_sanity(size, height, white, clust_total) != 0)
-		return 1;
+	if (   parse_header(f[0], magic, sizeof(magic), &size, &height, &white) != 0
+		|| check_sanity(size, height, white, clust_total) != 0) {
+		ret = 1;
+		goto STOP;
+	}
 
 	/* check that header values all agree */
 	for (i = 1; i < clust_total; i++)
@@ -318,8 +321,8 @@ int main(int argc, char **argv)
 		    || white != new_white)
 		{
 			fprintf(stderr, "Error: '%s' doesn't have identical header to '%s', stop\n", argv[i+1], argv[1]);
-			close_all(f, clust_total);
-			return 1;
+			ret = 1;
+			goto STOP;
 		}
 	}
 
@@ -327,12 +330,14 @@ int main(int argc, char **argv)
 
 	if (write_pgm(stdout, size, white, f, clust_total))
 	{
-		close_all(f, clust_total);
-		return 1;
+		ret = 1;
+		goto STOP;
 	}
 
+STOP:
 	close_all(f, clust_total);
+STOP_FREE_ONLY:
 	free(f);
 
-	return 0;
+	return ret;
 }
