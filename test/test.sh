@@ -7,7 +7,7 @@ xfails=0
 fail()
 {
 	fails=$(( fails + 1 ))
-	echo -e '[\e[1;31mFAIL\e[0m] '"$i"
+	echo -e '[\e[1;31mFAIL\e[0m] '"$i" "$@"
 }
 
 
@@ -22,9 +22,6 @@ pass()
 	passes=$(( passes + 1 ))
 	echo -e '[\e[0;32mPASS\e[0m] '"$i"
 }
-
-#########################
-# tests expected to pass
 
 cd "$(dirname "$0")" || exit 1
 export EXECUTABLE="$PWD/../pgm-interlace"
