@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 fails=0
 passes=0
@@ -6,51 +6,51 @@ xfails=0
 
 fail()
 {
-	fails=$(( $fails + 1 ))
-	echo -e '[\e[1;31mFAIL\e[0m] '$i $@
+	fails=$(( fails + 1 ))
+	echo -e '[\e[1;31mFAIL\e[0m] '"$i"
 }
 
 
 xfail()
 {
-	xfails=$(( $xfails + 1 ))
-	echo -e '[\e[1;35mXFAIL\e[0m] '$i $@
+	xfails=$(( xfails + 1 ))
+	echo -e '[\e[1;35mXFAIL\e[0m] '"$i"
 }
 
 pass()
 {
-	passes=$(( $passes + 1 ))
-	echo -e '[\e[0;32mPASS\e[0m] '$i $@
+	passes=$(( passes + 1 ))
+	echo -e '[\e[0;32mPASS\e[0m] '"$i"
 }
 
 #########################
 # tests expected to pass
 
-cd $(dirname $0)
+cd "$(dirname "$0")" || exit 1
 export EXECUTABLE="$PWD/../pgm-interlace"
 
 for i in {pass,error,xfail}/*.sh ; do
-	test_type=$(dirname $i)
-	pushd $test_type > /dev/null
+	test_type="$(dirname "$i")"
+	pushd "$test_type" > /dev/null || exit 1
 
 	name=$(basename "${i/.sh/}")
 	expected="$name.pgm.expected"
 	out="$name.pgm.out"
 	log="$name.stderr.log"
 	log_expected="$log.expected"
-	./$(basename $i) 2> "$log"
+	./"$(basename "$i")" 2> "$log"
 	result=$?
 	if [ -f "$expected" ] ; then
 		if ! diff "$expected" "$out" ; then
 			fail "output file doesn't match expectation"
-			popd > /dev/null
+			popd > /dev/null || exit 1
 			continue
 		fi
 	fi
 	if [ -f "$log_expected" ] ; then
 		if ! diff "$log_expected" "$log" ; then
 			fail "stderr doesn't match expectation"
-			popd > /dev/null
+			popd > /dev/null || exit 1
 			continue
 		fi
 	fi
@@ -83,7 +83,7 @@ for i in {pass,error,xfail}/*.sh ; do
 	esac
 
 	rm -f "$out" "$log"
-	popd > /dev/null
+	popd > /dev/null || exit 1
 done
 
 echo ----------------------------------
